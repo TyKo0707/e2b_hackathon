@@ -4,7 +4,7 @@
 We developed an **AI agent** capable of generating animated videos from textual data provided as an input.  
 The pipeline consists of **three main steps**:
 
-1. **Input Processing & Description**  
+1. **Slide Processing & Description**  
    The input data is analyzed and converted into a detailed textual description of its content.
 
 2. **Scene Generation**  
@@ -32,7 +32,7 @@ A video demonstration of the system in action is shown below.
 
 To generate animation run the below command.
 ```bash
-python script.py --query "Your animation description here" [--pdf path/to/document.pdf] [--output-dir output_folder]
+python generate_animation_cli.py --query "Your animation description here" [--pdf path/to/document.pdf] [--output-dir output_folder]
 ```
 
 For example, if you want to animate backpropagation, run: `python script.py --query "Create an animation showing backpropagation in neural networks"`.
@@ -40,5 +40,10 @@ For example, if you want to animate backpropagation, run: `python script.py --qu
 Or, if you want to feed it PDF to generate animation that would explain you probability distribution, you might run 
 
 ```bash
-python3 generate_animation_cli.py --query "Generate a very short Manim animationthat would explain probability distributions in the attached PDF. Keep the animation short, the length of the scene should not exceed 100 lines." --pdf=./assets/example2.pdf
+python3 generate_animation_cli.py --query "Generate a very short Manim animationthat would explain probability distributions in the attached PDF. Keep the animation short, the length of the scene should not exceed 100 lines. Do not use LaTeX." --pdf=./assets/example2.pdf
 ```
+
+## Limitations
+
+- Cannot render LaTeX on E2B servers yet. But should be easy to install.
+- The model should be finetuned on a corpora of Manim scripts to reduce overlapping labels and animations.
