@@ -8,7 +8,6 @@ client = anthropic.Anthropic(
     api_key=os.environ.get("ANTHROPIC_API_KEY"),
 )
 
-
 def extract_json_from_text(text):
     # Look for content between ```json and ``` markers
     pattern = r'```json\s*(.*?)\s*```'
@@ -26,7 +25,7 @@ def extract_content_from_pdf(pdf_path):
         pdf_data = base64.b64encode(f.read()).decode("utf-8")
 
     response = client.messages.create(
-        model="claude-3-7-sonnet-20250219",
+        model="claude-3-7-sonnet-latest",
         max_tokens=4000,
         messages=[
             {
@@ -42,7 +41,7 @@ def extract_content_from_pdf(pdf_path):
                     },
                     {
                         "type": "text",
-                        "text": "Analyze the content of this PDF. Identify logical sections based on topics or chapters. Extract each section's main concepts, formulas, and examples. Create a JSON structure with the following format: {\"sections\": [{\"id\": \"unique_id\", \"title\": \"section_title\", \"concepts\": [...], \"formulas\": [{\"description\": \"...\", \"latex\": \"...\"}], \"examples\": [...]}]}. Make sure all formulas are correctly represented in LaTeX."
+                        "text": "Analyze the content of this PDF. Identify logical sections based on topics or chapters. Extract each section's main concepts, formulas, and examples. Create a JSON structure with the following format: '''json {\"sections\": [{\"id\": \"unique_id\", \"title\": \"section_title\", \"concepts\": [...], \"formulas\": [{\"description\": \"...\", \"latex\": \"...\"}], \"examples\": [...]}]}. Make sure all formulas are correctly represented in LaTeX."
                     }
                 ]
             }
@@ -64,7 +63,7 @@ def plan_animation_for_section(section):
     section_json = json.dumps(section)
 
     response = client.messages.create(
-        model="claude-3-7-sonnet-20250219",
+        model="claude-3-7-sonnet-latest",
         max_tokens=4000,
         messages=[
             {
@@ -81,6 +80,7 @@ def plan_animation_for_section(section):
                 3. What visual examples could help understand the formula
 
                 Present the result in JSON format:
+                '''json
                 {{
                     "section_id": "{section.get('id', '')}",
                     "section_title": "{section.get('title', '')}",
@@ -104,7 +104,7 @@ def plan_animation_for_section(section):
     )
 
     # Extract JSON from response
-    content = str(response.content[0])
+
     content = response.content[0].text
     try:
 
@@ -116,12 +116,12 @@ def plan_animation_for_section(section):
 
 
 def generate_manim_code_for_section(animation_plan):
-    """Stage 3: Generate ManimLib code for a single section."""
+    """Stage 3: Generate Manim code for a single section."""
     plan_json = json.dumps(animation_plan)
 
     response = client.messages.create(
-        model="claude-3-7-sonnet-20250219",
-        max_tokens=4000,
+        model="claude-3-7-sonnet-latest",
+        max_tokens=8192,
         messages=[
             {
                 "role": "user",
@@ -130,24 +130,25 @@ def generate_manim_code_for_section(animation_plan):
 
                 {plan_json}
 
-                Generate ManimLib code for this specific section. Create a Scene class named after the section title.
+                Generate Manim code for this specific section. Create a Scene class named after the section title.
 
-                Use ManimLib syntax (3Blue1Brown's original Manim library, NOT the Community Edition).
+                Use Manim Community Edition syntax (NOT the original 3Blue1Brown's ManimLib).
 
                 Important syntax guidelines:
-                - Use 'from manimlib import *' instead of 'from manim import *'
-                - Use TexMobject or TextMobject instead of MathTex
+                - Use 'from manim import *' for imports
+                - Use MathTex for LaTeX formulas instead of TexMobject
+                - Use Text class instead of TextMobject
                 - Use COLOR constants like RED, BLUE, etc. for colors
                 - Position objects with .to_edge(), .next_to(), etc.
 
                 Important requirements:
                 - Include code comments
-                - Use TexMobject for LaTeX formulas
+                - Use MathTex for LaTeX formulas
                 - Add visual elements (colors, arrows, boxes) to highlight important parts
                 - Include self.play() methods for smooth animations
                 - Add self.wait() between key animations
 
-                Make sure the code is fully functional and can be run independently.
+                Make sure the code is fully functional and can be run independently with Manim Community Edition.
                 """
             }
         ]
@@ -162,10 +163,8 @@ def generate_manim_code_for_section(animation_plan):
         return manim_code
 
 
-
-# instead of that, we can use Timur's version
 def merge_manim_code(code_sections):
-    """Combine multiple ManimLib code sections into a single file."""
+    """Combine multiple Manim code sections into a single file."""
     imports = []
     scene_classes = []
 
@@ -199,9 +198,6 @@ def merge_manim_code(code_sections):
     if scene_names:
         main_function = "\n\nif __name__ == \"__main__\":\n"
         main_function += "    # To run all scenes sequentially, uncomment this block\n"
-        main_function += "    # import sys\n"
-        main_function += "    # from os import path\n"
-        main_function += "    # sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))\n"
         for scene in scene_names:
             main_function += f"    # {scene}().render()\n"
 
@@ -211,7 +207,7 @@ def merge_manim_code(code_sections):
 
 
 def pdf_to_manim_sections(pdf_path, output_dir):
-    """Complete pipeline from PDF to multiple ManimLib code files, one per section."""
+    """Complete pipeline from PDF to multiple Manim code files, one per section."""
     os.makedirs(output_dir, exist_ok=True)
 
     print("Stage 1: Extracting content and dividing into sections...")
@@ -244,27 +240,27 @@ def pdf_to_manim_sections(pdf_path, output_dir):
         animation_plan = plan_animation_for_section(section)
         animation_plans.append(animation_plan)
 
-        # Stage 3: Generate ManimLib code for this section
-        print(f"  Generating ManimLib code...")
+        # Stage 3: Generate Manim code for this section
+        print(f"  Generating Manim code...")
         manim_code = generate_manim_code_for_section(animation_plan)
         code_sections.append(manim_code)
 
         # Save individual section code
-        with open(f"{output_dir}/{clean_title}.py", "w") as f:
+        with open(f"{output_dir}/{clean_title}.py", "w", encoding="utf-8") as f:
             f.write(manim_code)
 
         print(f"  Saved to {output_dir}/{clean_title}.py")
 
     # Save combined results
-    with open(f"{output_dir}/all_sections.json", "w") as f:
+    with open(f"{output_dir}/all_sections.json", "w", encoding="utf-8") as f:
         json.dump(structured_content, f, indent=2)
 
-    with open(f"{output_dir}/all_animation_plans.json", "w") as f:
+    with open(f"{output_dir}/all_animation_plans.json", "w", encoding="utf-8") as f:
         json.dump(animation_plans, f, indent=2)
 
     # Create combined Manim code file
     combined_code = merge_manim_code(code_sections)
-    with open(f"{output_dir}/combined_animation.py", "w") as f:
+    with open(f"{output_dir}/combined_animation.py", "w", encoding="utf-8") as f:
         f.write(combined_code)
 
     print(f"Done! Results saved to {output_dir}/")
