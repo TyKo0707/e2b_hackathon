@@ -1,9 +1,8 @@
 import datetime
-from e2b_code_interpreter import Sandbox
+from e2b import Sandbox
 import glob
 import ast
-
-E2B_API_KEY = "e2b_af8f93d273358e7b4001997b507d82ea32f3aab0"
+import os
 
 
 def initialize_box(sbx):
@@ -22,7 +21,7 @@ def initialize_box(sbx):
     sbx.commands.run("pip install manim")
 
 
-def generate_video(scripts_scene, videos_output_path):
+def generate_video(scripts_scene, videos_output_path, template=None):
     """
     Render Manim animations for multiple scripts and save them with timestamped filenames.
 
@@ -37,26 +36,34 @@ def generate_video(scripts_scene, videos_output_path):
     Returns:
         None
     """
-    with Sandbox(api_key=E2B_API_KEY) as sbx:
+    if not template:
+        sbx = Sandbox(api_key=os.environ['E2B_API_KEY'])
         initialize_box(sbx)
+    else:
+        sbx = Sandbox(template="2ulazwy6l44ghm46535z")
 
-        for script, scene_name in scripts_scene:
-            script = script.split('/')[-1]
-            with open(script, "r") as file:
-                sbx.files.write(f"/home/user/{script}", file)
+    print('Sandbox initialized')
 
-            sbx.commands.run(f"manim /home/user/{script} {scene_name}")
+    script = scripts_scene[0][0].split('/')[-1]
+    with open(script, "r") as file:
+        sbx.files.write(f"/home/user/{script}", file)
+    print('Script uploaded')
 
-            content = sbx.files.read(f'/home/user/media/videos/{script.split(".")[0]}/1080p60/{scene_name}.mp4',
-                                     format='bytes')
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    for i in range(len(scripts_scene)):
+        scene_name = scripts_scene[i][1]
+        sbx.commands.run(f"manim /home/user/{script} {scene_name}")
+        print(f'Video for {i + 1}/{len(scripts_scene)} scenes generated')
 
-            output_filename = f"{scene_name}-{timestamp}.mp4"
-            with open(f'{videos_output_path}/{output_filename}', "wb") as file:
-                file.write(content)
+        content = sbx.files.read(f'/home/user/media/videos/{script.split(".")[0]}/1080p60/{scene_name}.mp4',
+                                 format='bytes')
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        output_filename = f"{scene_name}-{timestamp}.mp4"
+        with open(f'{videos_output_path}/{output_filename}', "wb") as file:
+            file.write(content)
 
 
-def merge_videos(videos, output_path="merged_video.mp4"):
+def merge_videos(videos, output_path="./videos/merged_video.mp4"):
     """
     Merge multiple MP4 videos into a single video.
 
@@ -84,6 +91,7 @@ def merge_videos(videos, output_path="merged_video.mp4"):
     # Use FFmpeg to concatenate the videos
     cmd = [
         "ffmpeg",
+        "-loglevel", "panic",
         "-f", "concat",
         "-safe", "0",
         "-i", temp_list_path,
@@ -121,6 +129,8 @@ if __name__ == '__main__':
     main_file = 'simple.py'
     classes = get_class_names(main_file)
     scripts_scene = [(main_file, classes[i]) for i in range(len(classes))]
-    generate_video(scripts_scene, 'videos')
+    print('Process started')
+    generate_video(scripts_scene, 'videos', '2ulazwy6l44ghm46535z')
+    print('Process completed, saving video...')
     video_files = glob.glob("./videos/*.mp4")
     a = merge_videos(video_files)
