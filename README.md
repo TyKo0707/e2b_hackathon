@@ -36,3 +36,9 @@ python script.py --query "Your animation description here" [--pdf path/to/docume
 ```
 
 For example, if you want to animate backpropagation, run: `python script.py --query "Create an animation showing backpropagation in neural networks"`.
+
+Or, if you want to feed it PDF to generate animation that would explain you probability distribution, you might run 
+
+```bash
+python3 generate_animation_cli.py --query "Generate a very short Manim animationthat would explain probability distributions in the attached PDF. Keep the animation short, the length of the scene should not exceed 100 lines." --pdf=./assets/example2.pdf
+```
