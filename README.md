@@ -25,6 +25,6 @@ You can see a visual representation of the pipeline in the image below.
 ---
 
 A video demonstration of the system in action is shown below.
-[Demonstration of work.](https://raw.githubusercontent.com/TyKo0707/e2b_hackathon/blob/main/output/BACKPROP.mp4)
+[Demonstration of work.](https://github.com/TyKo0707/e2b_hackathon/blob/main/output/BACKPROP.mp4)
 
 
