@@ -28,3 +28,11 @@ A video demonstration of the system in action is shown below.
 [Demonstration of work.](https://github.com/TyKo0707/e2b_hackathon/blob/main/output/BACKPROP.mp4)
 
 
+## Usage
+
+To generate animation run the below command.
+```bash
+python script.py --query "Your animation description here" [--pdf path/to/document.pdf] [--output-dir output_folder]
+```
+
+For example, if you want to animate backpropagation, run: `python script.py --query "Create an animation showing backpropagation in neural networks"`.
