@@ -1,7 +1,7 @@
-# AI Agent for Slide Animation
+# TTA: Text-to-Animation Model
 
 ---
-We developed an **AI agent** capable of generating animated versions of slides provided as input.  
+We developed an **AI agent** capable of generating animated videos from textual data provided as an input.  
 The pipeline consists of **three main steps**:
 
 1. **Slide Processing & Description**  
