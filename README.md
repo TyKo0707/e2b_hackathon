@@ -18,7 +18,7 @@ The pipeline consists of **three main steps**:
 
 You can see a visual representation of the pipeline in the image below.
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/1b22dccd-5e0d-427a-8a2d-f1448cef252c" width="250" title="Figure 1">
+  <img src="https://github.com/user-attachments/assets/1b22dccd-5e0d-427a-8a2d-f1448cef252c" width="400" title="Figure 1">
 </p>
 <p align="center">Figure 1: Visualization of the pipeline</p>
 
