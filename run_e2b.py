@@ -63,7 +63,7 @@ def generate_video(scripts_scene, videos_output_path, template=None):
             file.write(content)
 
 
-def merge_videos(videos, output_path="merged_video.mp4"):
+def merge_videos(videos, output_path="./videos/merged_video.mp4"):
     """
     Merge multiple MP4 videos into a single video.
 
