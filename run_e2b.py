@@ -1,8 +1,9 @@
 import datetime
 from e2b_code_interpreter import Sandbox
 import glob
+import ast
 
-E2B_API_KEY = "..."
+E2B_API_KEY = "e2b_af8f93d273358e7b4001997b507d82ea32f3aab0"
 
 
 def initialize_box(sbx):
@@ -40,12 +41,14 @@ def generate_video(scripts_scene, videos_output_path):
         initialize_box(sbx)
 
         for script, scene_name in scripts_scene:
+            script = script.split('/')[-1]
             with open(script, "r") as file:
-                sbx.files.write(f"/home/user/{script.split('/')[-1]}", file)
+                sbx.files.write(f"/home/user/{script}", file)
 
-            sbx.commands.run(f"manim /home/user/code.py {scene_name}")
+            sbx.commands.run(f"manim /home/user/{script} {scene_name}")
 
-            content = sbx.files.read(f'/home/user/media/videos/code/1080p60/{scene_name}.mp4', format='bytes')
+            content = sbx.files.read(f'/home/user/media/videos/{script.split(".")[0]}/1080p60/{scene_name}.mp4',
+                                     format='bytes')
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
             output_filename = f"{scene_name}-{timestamp}.mp4"
@@ -98,8 +101,26 @@ def merge_videos(videos, output_path="merged_video.mp4"):
         return None
 
 
+def get_class_names(file_path):
+    """
+    Extract all top-level class names from a Python file.
+
+    Args:
+        file_path (str): Path to the .py file.
+
+    Returns:
+        list of str: List of class names defined in the file.
+    """
+    with open(file_path, 'r', encoding='utf-8') as f:
+        tree = ast.parse(f.read(), filename=file_path)
+
+    return [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+
+
 if __name__ == '__main__':
-    scripts_scene = [('simple.py', 'SquareToCircle'), ('simple.py', 'SquareToCircle')]
+    main_file = 'simple.py'
+    classes = get_class_names(main_file)
+    scripts_scene = [(main_file, classes[i]) for i in range(len(classes))]
     generate_video(scripts_scene, 'videos')
     video_files = glob.glob("./videos/*.mp4")
     a = merge_videos(video_files)
