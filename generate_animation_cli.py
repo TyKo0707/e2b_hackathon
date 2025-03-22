@@ -3,6 +3,7 @@ from e2b_code_interpreter import Sandbox
 from anthropic import Anthropic
 import ast
 import argparse
+import PyPDF2 
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 E2B_API_KEY = os.getenv("E2B_API_KEY")
@@ -88,6 +89,37 @@ def get_class_names(program_code):
     tree = ast.parse(program_code)
     return [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
 
+def process_pdf_document(pdf_path):
+    """
+    Process a PDF document to extract text that can be used as context.
+    
+    Args:
+        pdf_path (str): Path to the PDF file
+        
+    Returns:
+        str: Extracted text from the PDF
+    """
+    text = ""
+    try:
+        with open(pdf_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            num_pages = len(reader.pages)
+            print(f"Processing PDF with {num_pages} pages")
+            
+            # Extract text from each page
+            for page_num in range(num_pages):
+                page = reader.pages[page_num]
+                text += page.extract_text() + "\n\n"
+            
+            # Truncate if too long (to avoid exceeding token limits)
+            if len(text) > 50000:
+                text = text[:50000] + "... [PDF content truncated due to length]"
+                
+            print(f"Extracted {len(text)} characters from PDF")
+            return text
+    except Exception as e:
+        print(f"Error processing PDF: {e}")
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generate Manim animations from text descriptions")
     parser.add_argument("--query", required=True, help="Description of the animation to generate")
@@ -99,8 +131,14 @@ if __name__ == '__main__':
     sbx = initialize_box("2ulazwy6l44ghm46535z")
     print("Finished initializing E2B box.\n")
 
-    # user_prompt = f"Generate a Manim animation that visualizes CPU caches. Make it educational and intuitive. The length of the scene should not exceed 100 lines."
     user_prompt = args.query
+
+    if args.pdf:
+        print(f"Processing PDF document: {args.pdf}")
+        pdf_context = process_pdf_document(args.pdf)
+        user_prompt += f"Context PDF of the attached PDF:\n {pdf_context}"
+        
+        print(f"PDF processing complete.")
 
     print("Sending LLM call...")
     program = ask_claude(SYSTEM_PROMPT, user_prompt, ANTHROPIC_API_KEY, MODEL_NAME)
@@ -109,6 +147,7 @@ if __name__ == '__main__':
 
     generated_program_filename = "code.py"
     
+
     with open(generated_program_filename, "w") as file:
         print(f"Generated program: {program}")
         file.write(program)
