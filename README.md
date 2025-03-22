@@ -4,8 +4,8 @@
 We developed an **AI agent** capable of generating animated videos from textual data provided as an input.  
 The pipeline consists of **three main steps**:
 
-1. **Slide Processing & Description**  
-   The input file is analyzed and converted into a detailed textual description of its content.
+1. **Input Processing & Description**  
+   The input data is analyzed and converted into a detailed textual description of its content.
 
 2. **Scene Generation**  
    Based on the extracted description, scenes are generated to visually represent the information.
