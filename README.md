@@ -25,4 +25,4 @@ You can see a visual representation of the pipeline in the image below.
 ---
 
 A video demonstration of the system in action is shown below.
-![generation_results](https://github.com/user-attachments/assets/17c33046-ee0a-4319-8de9-221c6d2a4404)
+![generation_results](https://github.com/user-attachments/assets/9186e19f-5c1b-48e0-b123-fc05d6da756e)
